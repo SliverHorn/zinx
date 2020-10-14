@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/SliverHorn/zinx/siface"
+	"github.com/SliverHorn/zinx/interfaces"
 	"net"
 )
 
@@ -18,7 +18,7 @@ type Server struct {
 }
 
 // NewServer Server的构造函数
-func NewServer(IP string, port int, name string, IPVersion string) _interface.IServer {
+func NewServer(IP string, port int, name string, IPVersion string) interfaces.IServer {
 	return &Server{IP: IP, Port: port, Name: name, IPVersion: IPVersion}
 }
 
