@@ -55,7 +55,7 @@ func tcp(s *Server) {
 	if lErr != nil {
 		fmt.Println("func net.ListenTCP() Failed! err:" + lErr.Error())
 	}
-	fmt.Printf("Start %v Server success, Listenning", s.Name)
+	fmt.Printf("Start %v Server success, Listenning\n", s.Name)
 
 	// 3.阻塞的等待客户端链接,处理客户端链接业务(读写)
 	for {
@@ -75,7 +75,7 @@ func echo(conn *net.TCPConn) {
 			fmt.Println("func conn.Read() Failed! err:" + err.Error())
 			continue
 		} else { // 回显
-			fmt.Printf("接收到的信息为:%s, count:%d",buf, count)
+			fmt.Printf("接收到的信息为:%s, count:%d\n",buf, count)
 			if _, err := conn.Write(buf[:count]); err != nil {
 				fmt.Println("func conn.Write() Failed! err:" + err.Error())
 				continue
