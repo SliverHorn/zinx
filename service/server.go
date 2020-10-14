@@ -18,7 +18,7 @@ type Server struct {
 }
 
 // NewServer Server的构造函数
-func NewServer(IP string, port int, name string, IPVersion string) interfaces.IServer {
+func NewServer(IP string, port int, name string, IPVersion string) interfaces.Server {
 	return &Server{IP: IP, Port: port, Name: name, IPVersion: IPVersion}
 }
 
