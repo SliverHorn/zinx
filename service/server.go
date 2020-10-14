@@ -1,4 +1,4 @@
-package snet
+package service
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type Server struct {
 }
 
 // NewServer Server的构造函数
-func NewServer(IP string, port int, name string, IPVersion string) siface.IServer {
+func NewServer(IP string, port int, name string, IPVersion string) _interface.IServer {
 	return &Server{IP: IP, Port: port, Name: name, IPVersion: IPVersion}
 }
 
