@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"github.com/SliverHorn/zinx/interfaces"
 	"net"
@@ -57,6 +58,8 @@ func tcp(s *Server) {
 	}
 	fmt.Printf("Start %v Server success, Listenning\n", s.Name)
 
+	var cid uint32
+	cid = 0
 	// 3.阻塞的等待客户端链接,处理客户端链接业务(读写)
 	for {
 		conn, err := listenner.AcceptTCP() // 如果有客户端链接过来,阻塞会返回
@@ -64,10 +67,15 @@ func tcp(s *Server) {
 			fmt.Println("func listenner.AcceptTCP() Failed! err:" + err.Error())
 			continue
 		}
-		go echo(conn)
+		// 将处理新链接的业务方法和conn进行绑定,得到我们的链接模块
+		dealConn := NewConnection(conn, cid, CallBackToClient)
+		cid++
+		// 启动当前的链接业务处理
+		go dealConn.Start()
 	}
 }
 
+// v0.1 调用 go echo(conn)
 func echo(conn *net.TCPConn) {
 	for {
 		buf := make([]byte, 512)
@@ -75,11 +83,20 @@ func echo(conn *net.TCPConn) {
 			fmt.Println("func conn.Read() Failed! err:" + err.Error())
 			continue
 		} else { // 回显
-			fmt.Printf("接收到的信息为:%s, count:%d\n",buf, count)
+			fmt.Printf("接收到的信息为:%s, count:%d\n", buf, count)
 			if _, err := conn.Write(buf[:count]); err != nil {
 				fmt.Println("func conn.Write() Failed! err:" + err.Error())
 				continue
 			}
 		}
 	}
+}
+
+// v0.2 使用
+func CallBackToClient(conn *net.TCPConn, content []byte, count int) error {
+	if _, err := conn.Write(content[:count]); err != nil {
+		fmt.Println("func conn.Write() Failed! err:", err.Error())
+		return errors.New("CallBackToClient Error")
+	}
+	return nil
 }
