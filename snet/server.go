@@ -39,23 +39,21 @@ func (s *Server) Serve() {
 	// TODO 做一些启动服务器之后的额外业务
 
 	// 阻塞状态
-	select {
-
-	}
+	select {}
 }
 
 func tcp(s *Server) {
 	// 1. 获取一个TCP的Addr
 	addr, rErr := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 	if rErr != nil {
-		fmt.Println("func net.ResolveIPAddr() Failed! err:"+rErr.Error())
+		fmt.Println("func net.ResolveIPAddr() Failed! err:" + rErr.Error())
 		return
 	}
 
 	// 2. 监听服务器的地址
 	listenner, lErr := net.ListenTCP(s.IPVersion, addr)
 	if lErr != nil {
-		fmt.Println("func net.ListenTCP() Failed! err:"+lErr.Error())
+		fmt.Println("func net.ListenTCP() Failed! err:" + lErr.Error())
 	}
 	fmt.Printf("Start %v Server success, Listenning", s.Name)
 
@@ -63,7 +61,7 @@ func tcp(s *Server) {
 	for {
 		conn, err := listenner.AcceptTCP() // 如果有客户端链接过来,阻塞会返回
 		if err != nil {
-			fmt.Println("func listenner.AcceptTCP() Failed! err:"+err.Error())
+			fmt.Println("func listenner.AcceptTCP() Failed! err:" + err.Error())
 			continue
 		}
 		go echo(conn)
@@ -71,18 +69,17 @@ func tcp(s *Server) {
 }
 
 func echo(conn *net.TCPConn) {
-	for  {
+	for {
 		buf := make([]byte, 512)
-		cnt, err := conn.Read(buf)
-		if err != nil {
-			fmt.Println("func conn.Read() Failed! err:"+err.Error())
+		if count, err := conn.Read(buf); err != nil {
+			fmt.Println("func conn.Read() Failed! err:" + err.Error())
 			continue
-		}
-
-		// 回显
-		if _, err := conn.Write(buf[:cnt]); err != nil {
-			fmt.Println("func conn.Write() Failed! err:"+err.Error())
-			continue
+		} else { // 回显
+			fmt.Printf("接收到的信息为:%s, count:%d",buf, count)
+			if _, err := conn.Write(buf[:count]); err != nil {
+				fmt.Println("func conn.Write() Failed! err:" + err.Error())
+				continue
+			}
 		}
 	}
 }
