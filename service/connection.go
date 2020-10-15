@@ -13,6 +13,9 @@ type Connection struct {
 	// 链接ID
 	ConnID uint32
 
+	// 路由
+	Router interfaces.Router
+
 	// 告知当前链接已经退出/停止 channel
 	ExitChan chan bool
 
@@ -20,11 +23,11 @@ type Connection struct {
 	isClosed bool
 
 	// 当前链接锁绑定的处理业务方法API
-	handleAPI interfaces.HandleFunc
+	// handleAPI interfaces.HandleFunc
 }
 
-func NewConnection(conn *net.TCPConn, connID uint32, handleAPI interfaces.HandleFunc) *Connection {
-	return &Connection{Conn: conn, ConnID: connID, isClosed:false, ExitChan: make(chan bool, 1), handleAPI: handleAPI}
+func NewConnection(conn *net.TCPConn, connID uint32, router interfaces.Router) *Connection {
+	return &Connection{Conn: conn, ConnID: connID, isClosed: false, Router: router, ExitChan: make(chan bool, 1)}
 }
 
 func (c *Connection) Stop() {
@@ -64,20 +67,27 @@ func (c *Connection) GetTCPConnection() *net.TCPConn {
 
 // StartReader 链接的读业务
 func (c *Connection) StartReader() {
-	defer fmt.Printf("ConnID=%v, Remote Address=%v, 已退出\n",c.ConnID, c.RemoteAddress().String())
+	defer fmt.Printf("ConnID=%v, Remote Address=%v, 已退出\n", c.ConnID, c.RemoteAddress().String())
 	defer c.Stop()
 
 	for {
 		// 读取客户端的数据到buf中,最大512字节
 		buf := make([]byte, 512)
-		count, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("读取失败,err", err.Error())
 			continue
 		}
-		if err = c.handleAPI(c.Conn,buf,count); err != nil {
-			fmt.Printf("ConnID=%v,err=%v", c.ConnID, err.Error())
-			break
-		}
+		request := Request{data: buf, conn: c}
+		go func(r interfaces.Request) {
+			c.Router.BeforeHandle(r)
+			c.Router.NowHandle(r)
+			c.Router.AfterHandle(r)
+		}(&request)
+
+		//if err = c.handleAPI(c.Conn,buf,count); err != nil {
+		//	fmt.Printf("ConnID=%v,err=%v", c.ConnID, err.Error())
+		//	break
+		//}
 	}
 }

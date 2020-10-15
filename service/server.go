@@ -10,17 +10,23 @@ import (
 type Server struct {
 	// 服务器监听的IP
 	IP string
+
 	// 服务器监听的端口
 	Port int
+
 	// 服务器的名称
 	Name string
+
+	// 路由
+	Router interfaces.Router
+
 	// 服务器绑定的IP版本
 	IPVersion string
 }
 
 // NewServer Server的构造函数
 func NewServer(IP string, port int, name string, IPVersion string) interfaces.Server {
-	return &Server{IP: IP, Port: port, Name: name, IPVersion: IPVersion}
+	return &Server{IP: IP, Port: port, Name: name, Router:nil, IPVersion: IPVersion}
 }
 
 func (s *Server) Stop() {
@@ -41,6 +47,11 @@ func (s *Server) Serve() {
 
 	// 阻塞状态
 	select {}
+}
+
+func (s *Server) AddRouter(router interfaces.Router)  {
+	s.Router = router
+	fmt.Println("添加路由成功")
 }
 
 func tcp(s *Server) {
@@ -68,7 +79,7 @@ func tcp(s *Server) {
 			continue
 		}
 		// 将处理新链接的业务方法和conn进行绑定,得到我们的链接模块
-		dealConn := NewConnection(conn, cid, CallBackToClient)
+		dealConn := NewConnection(conn, cid, s.Router)
 		cid++
 		// 启动当前的链接业务处理
 		go dealConn.Start()
